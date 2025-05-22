@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCash - Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="mobile-container">
+    <!-- Header -->
+    <header class="gcash-header">
+      <div class="gcash-logo">
+        <div class="gcash-logo-icon">G</div>
+        <div class="gcash-greeting">Hello, <span id="user-name"><%= user.first_name %></span>!</div>
+      </div>
+      <div class="profile-icon" id="profile-btn">
+        <i class="fas fa-user"></i>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="gcash-content">
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="balance-label">AVAILABLE BALANCE</div>
+        <div class="balance-amount">
+          <div>
+            <span class="peso-sign">₱</span> <span id="checking-balance"><%= user.balance.toFixed(2) %></span>
+          </div>
+          <button class="cash-in-btn">
+            <i class="fas fa-plus"></i> Cash In
+          </button>
+        </div>
+        <div class="account-number-display">
+          Account #: <span id="account-number"><%= user.accNo %></span>
+        </div>
+      </div>
+
+
+      <!-- Menu Grid -->
+      <div class="menu-grid">
+        <div class="menu-item" id="send-money-feature">
+          <div class="menu-icon">
+            <i class="fas fa-paper-plane" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">Send</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-mobile-alt" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">Load</div>
+        </div>
+        <div class="menu-item" id="transfer-feature">
+          <div class="menu-icon">
+            <i class="fas fa-university" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">Transfer</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-file-invoice" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">Bills</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-hand-holding-usd" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">Borrow</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-piggy-bank" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">GSave</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-shield-alt" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">GInsure</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-chart-line" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">GInvest</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-heartbeat" style="color: #e74c3c;"></i>
+          </div>
+          <div class="menu-label">GLife</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-award" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">A+ Rewards</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon">
+            <i class="fas fa-leaf" style="color: #26a65b;"></i>
+          </div>
+          <div class="menu-label">GForest</div>
+        </div>
+        <div class="menu-item" id="transactions-feature">
+          <div class="menu-icon">
+            <i class="fas fa-history" style="color: #0066cc;"></i>
+          </div>
+          <div class="menu-label">Transactions</div>
+        </div>
+      </div>
+
+      <!-- Deals Section -->
+      <div class="deals-section">
+        <h2 class="deals-title">Mega Deals</h2>
+        <div class="deal-card">
+          <img src="/IMG-20250414-WA0385.jpg" class="deal-image">
+        </div>
+      </div>
+
+      <!-- Recent Transactions Section -->
+      <div class="recent-transactions-section">
+        <h2 class="section-title"><i class="fas fa-history"></i> Recent Transactions</h2>
+        <div class="transactions-list" id="recent-transactions-list">
+          <div class="no-transactions" id="no-recent-transactions">
+            No recent transactions
+          </div>
+        </div>
+        <div class="view-all-link">
+          <a href="/transactions/<%= user._id %>">View All Transactions <i class="fas fa-chevron-right"></i></a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <i class="fas fa-home"></i>
+        <div class="nav-text">Home</div>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-envelope"></i>
+        <div class="nav-text">Inbox</div>
+      </div>
+      <div class="nav-item">
+        <div class="qr-button">
+          <i class="fas fa-qrcode"></i>
+        </div>
+        <div class="nav-text">QR</div>
+      </div>
+      <div class="nav-item" id="nav-transactions">
+        <i class="fas fa-history"></i>
+        <div class="nav-text">Transactions</div>
+      </div>
+      <div class="nav-item" id="profile-nav">
+        <i class="fas fa-user"></i>
+        <div class="nav-text">Profile</div>
+      </div>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="side-menu" id="side-menu">
+      <div class="menu-header">
+        <div class="welcome-text">Hello, <span id="menu-user-name"><%= user.first_name %></span></div>
+      </div>
+      <nav class="menu-nav">
+        <ul>
+          <li><a href="/dashboard"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="#"><i class="fas fa-credit-card"></i> My Account</a></li>
+          <li><a href="/send-money"><i class="fas fa-paper-plane"></i> Send Money</a></li>
+          <li><a href="/transactions/<%= user._id %>"><i class="fas fa-history"></i> Transactions</a></li>
+          <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+          <li><a href="/logout" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Sign Out</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <!-- Coming Soon Modal -->
+    <div class="modal" id="coming-soon-modal">
+      <div class="modal-content">
+        <div class="modal-title">Coming Soon!</div>
+        <div class="modal-message">This feature is currently under development and will be available soon.</div>
+        <button type="button" class="form-button" id="close-modal-btn">Close</button>
+      </div>
+    </div>
+
+    <!-- Overlay for Side Menu -->
+    <div class="overlay" id="overlay"></div>
+  </div>
+  <script>
+    const user = <%- JSON.stringify(user) %>;
+  </script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

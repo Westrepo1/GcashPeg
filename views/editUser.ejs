@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit User - GCash Admin</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .navbar {
+      background-color: #286090;
+    }
+    .navbar-brand, .nav-link {
+      color: #ffffff !important;
+    }
+    .navbar-brand:hover, .nav-link:hover {
+      color: #e9ecef !important;
+    }
+    .form-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .form-control[readonly] {
+      background-color: #e9ecef;
+      opacity: 1;
+    }
+    .footer {
+      background-color: #286090;
+      color: #ffffff;
+      padding: 15px 0;
+      text-align: center;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+    }
+    .balance-field {
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/siteAdminPages">GCash Admin</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/siteAdminPages">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/siteAdminPages">User List</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="form-container">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+      <h1 class="h2 text-dark">Editing: <%= user.fullname %></h1>
+      <div class="text-end">
+        <small><b>User ID:</b> <%= user._id %></small>
+      </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/siteAdminPages">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= user.fullname %></li>
+      </ol>
+    </nav>
+
+    <!-- Edit Form -->
+    <form action="/editUser/<%= user._id %>?_method=PUT" method="POST" class="p-4 rounded shadow bg-light" enctype="application/x-www-form-urlencoded">
+      <!-- Error Display -->
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger" role="alert">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <!-- Personal Information -->
+      <h4 class="mb-3">Personal Information</h4>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="first_name" class="form-label">First Name</label>
+          <input type="text" class="form-control" id="first_name" name="first_name" value="<%= user.first_name %>" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="last_name" class="form-label">Last Name</label>
+          <input type="text" class="form-control" id="last_name" name="last_name" value="<%= user.last_name %>" readonly>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="image" class="form-label">Image URL</label>
+          <input type="text" class="form-control" id="image" name="image" value="<%= user.image || 'N/A' %>" readonly>
+        </div>
+      </div>
+
+      <!-- Account Information -->
+      <h4 class="mb-3">Account Information</h4>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="accNo" class="form-label">Account Number</label>
+          <input type="text" class="form-control" id="accNo" name="accNo" value="<%= user.accNo %>" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="balance" class="form-label">Balance (₱)</label>
+          <input type="number" step="0.01" min="0" class="form-control balance-field" id="balance" name="balance" value="<%= user.balance ? parseFloat(user.balance).toFixed(2) : '0.00' %>" required>
+        </div>
+      </div>
+
+      <!-- Verification & Status -->
+      <h4 class="mb-3">Verification & Status</h4>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="isVerified" class="form-label">Email Verified</label>
+          <input type="text" class="form-control" id="isVerified" value="<%= user.isVerified ? 'Yes' : 'No' %>" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="kycVerified" class="form-label">KYC Verified</label>
+          <input type="text" class="form-control" id="kycVerified" value="<%= user.kycVerified ? 'Yes' : 'No' %>" readonly>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="isSuspended" class="form-label">Is Suspended</label>
+          <input type="text" class="form-control" id="isSuspended" value="<%= user.isSuspended ? 'Yes' : 'No' %>" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="verificationCode" class="form-label">Verification Code</label>
+          <input type="text" class="form-control" id="verificationCode" value="<%= user.verificationCode || 'N/A' %>" readonly>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <h4 class="mb-3">Security</h4>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="otp" class="form-label">OTP Code</label>
+          <input type="text" class="form-control" id="otp" value="<%= user.otp || 'N/A' %>" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="otpExpires" class="form-label">OTP Expires</label>
+          <input type="text" class="form-control" id="otpExpires" value="<%= user.otpExpires ? new Date(user.otpExpires).toLocaleString() : 'N/A' %>" readonly>
+        </div>
+      </div>
+
+      <!-- Transactions -->
+      <h4 class="mb-3">Transactions</h4>
+      <div class="row mb-3">
+        <div class="col-12">
+          <label for="sendMoneys" class="form-label">Send Money Transactions</label>
+          <textarea class="form-control" id="sendMoneys" rows="4" readonly><%= user.sendMoneys ? user.sendMoneys.map(id => id).join(', ') : 'None' %></textarea>
+        </div>
+      </div>
+
+      <!-- Timestamps -->
+      <h4 class="mb-3">Timestamps</h4>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="createdAt" class="form-label">Created At</label>
+          <input type="text" class="form-control" id="createdAt" value="<%= new Date(user.createdAt).toLocaleString() %>" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="updatedAt" class="form-label">Updated At</label>
+          <input type="text" class="form-control" id="updatedAt" value="<%= new Date(user.updatedAt).toLocaleString() %>" readonly>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex justify-content-between mt-4">
+        <button type="submit" class="btn btn-primary">Update Balance</button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" id="deleteButton" data-bs-target="#deleteModal">Delete User</button>
+      </div>
+    </form>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Confirm User Deletion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>This will remove the user record of <b><%= user.fullname %></b>.<br>Are you sure?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <form action="/deleteUser/<%= user._id %>?_method=DELETE" method="POST">
+              <button type="submit" class="btn btn-primary">Yes, Remove User</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© <%= new Date().getFullYear() %> GCash Admin. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS and Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+</body>
+</html>

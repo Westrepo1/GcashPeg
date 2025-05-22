@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Money - GCash</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-bottom: 15px;
+      display: none;
+    }
+    .recipient-name {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #333;
+      display: none;
+    }
+    .form-button {
+      background-color: var(--gcash-blue);
+    }
+    .modal-content {
+      padding: 20px;
+      text-align: center;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .modal-message {
+      margin-bottom: 15px;
+    }
+    /* New style for recipient name input */
+    .recipient-name-input {
+      display: none;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    <!-- Header -->
+    <header class="gcash-header">
+      <div class="gcash-logo">
+        <div class="gcash-logo-icon">G</div>
+        <div class="gcash-greeting">Send Money</div>
+      </div>
+      <div class="profile-icon" id="profile-btn">
+        <i class="fas fa-user"></i>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="gcash-content">
+      <!-- Send Money Form -->
+      <section class="send-money-form">
+        <div class="error-message" id="error-message"></div>
+        
+        <div class="form-group">
+          <label class="form-label">From</label>
+          <select class="form-select" id="from-account">
+            <option value="checking">GCash Account</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">To (Account Number)</label>
+          <input type="text" class="form-input" id="recipient-account" placeholder="Enter recipient's account number" required>
+          <div class="recipient-name" id="recipient-name-display"></div>
+          <!-- New input field for recipient name -->
+          <input type="text" class="form-input recipient-name-input" id="recipient-name-input" placeholder="Enter recipient's GCash account name">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Amount</label>
+          <div class="input-with-icon">
+            <i class="fas fa-peso-sign"></i>
+            <input type="number" class="form-input" id="amount" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Note (Optional)</label>
+          <input type="text" class="form-input" id="note" placeholder="What's this for?">
+        </div>
+        
+        <button type="button" class="form-button" id="send-money-btn">Send Money</button>
+      </section>
+    </main>
+
+    <!-- Transaction Code Modal -->
+    <div class="modal" id="transaction-code-modal">
+      <div class="modal-content">
+        <div class="modal-title">Enter OTP Code</div>
+        <div class="modal-message">To complete this transaction, please enter the OTP code sent to your email.</div>
+        
+        <div class="form-group">
+          <input type="number" class="form-input" name="otp" id="transaction-code" placeholder="Enter OTP code" required>
+        </div>
+        
+        <div class="error-message" id="modal-error-message"></div>
+        
+        <button type="button" class="form-button" id="confirm-transaction-btn">Confirm Transaction</button>
+      </div>
+    </div>
+    
+    <!-- Coming Soon Modal -->
+    <div class="modal" id="coming-soon-modal">
+      <div class="modal-content">
+        <div class="modal-title">Coming Soon!</div>
+        <div class="modal-message">This feature is currently under development and will be available soon.</div>
+        <button type="button" class="form-button" id="close-modal-btn">Close</button>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <div class="nav-item">
+        <i class="fas fa-home"></i>
+        <div class="nav-text">Home</div>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-envelope"></i>
+        <div class="nav-text">Inbox</div>
+      </div>
+      <div class="nav-item">
+        <div class="qr-button">
+          <i class="fas fa-qrcode"></i>
+        </div>
+        <div class="nav-text">QR</div>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-history"></i>
+        <div class="nav-text">Transactions</div>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-user"></i>
+        <div class="nav-text">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/send-money.js"></script>
+</body>
+</html>

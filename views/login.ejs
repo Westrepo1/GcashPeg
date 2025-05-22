@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - GCash</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    body {
+      background-color: var(--gcash-blue);
+    }
+    .login-container {
+      max-width: 414px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-logo-icon {
+      width: 60px;
+      height: 60px;
+      background-color: var(--gcash-white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      font-size: 30px;
+      font-weight: bold;
+      color: var(--gcash-blue);
+    }
+    .login-logo-text {
+      color: var(--gcash-white);
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .login-form {
+      background-color: var(--gcash-white);
+      border-radius: 10px;
+      padding: 30px;
+    }
+    .form-title {
+      color: var(--gcash-blue);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .form-button {
+      background-color: var(--gcash-blue);
+    }
+    .form-link {
+      color: var(--gcash-blue);
+    }
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-bottom: 15px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="login-logo-icon">G</div>
+      <div class="login-logo-text">GCASH</div>
+    </div>
+    <section class="login-form">
+      <h1 class="form-title">Sign In</h1>
+      <div class="error-message" id="error-message">
+        <% if (messages.error) { %>
+          <%= messages.error %>
+        <% } %>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input type="email" class="form-input" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" class="form-input" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="form-button" id="login-btn">Sign In</button>
+        <a href="/signup" class="form-link">Don't have an account? Sign Up</a>
+      </form>
+    </section>
+  </div>
+  <script src="/js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View User - GCash Admin</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #212529;
+      color: #ffffff;
+    }
+    .navbar {
+      background-color: #286090;
+    }
+    .navbar-brand, .nav-link {
+      color: #ffffff !important;
+    }
+    .navbar-brand:hover, .nav-link:hover {
+      color: #e9ecef !important;
+    }
+    .container {
+      min-height: 100vh;
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+    .card {
+      background-color: #343a40;
+      border: none;
+    }
+    .card-header {
+      background-color: #495057;
+      font-weight: bold;
+    }
+    .list-group-item {
+      background-color: #343a40;
+      color: #ffffff;
+      border-color: #495057;
+    }
+    .breadcrumb {
+      background-color: #343a40;
+    }
+    .breadcrumb-item a {
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .breadcrumb-item a:hover {
+      text-decoration: underline;
+    }
+    .footer {
+      background-color: #286090;
+      color: #ffffff;
+      padding: 15px 0;
+      text-align: center;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+    }
+    .balance {
+      color: #28a745;
+    }
+    .null-field {
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/siteAdminPages">GCash Admin</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/siteAdminPages">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/siteAdminPages">User List</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+      <h1 class="h2"><%= user.fullname %></h1>
+      <div class="text-end">
+        <small><b>User ID:</b> <%= user._id %></small><br>
+        <small><b>Last Updated:</b> <%= new Date(user.updatedAt).toLocaleString() %></small>
+      </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/siteAdminPages">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= user.fullname %></li>
+      </ol>
+    </nav>
+
+    <!-- User Details -->
+    <div class="row">
+      <!-- Personal Information -->
+      <div class="col-md-6">
+        <div class="card text-white mb-3">
+          <div class="card-header">Personal Information</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Full Name:</b></div>
+                <div class="col-8"><%= user.fullname %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>First Name:</b></div>
+                <div class="col-8"><%= user.first_name %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Last Name:</b></div>
+                <div class="col-8"><%= user.last_name %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Email:</b></div>
+                <div class="col-8"><%= user.email %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Image:</b></div>
+                <div class="col-8">
+                  <%= user.image ? `<img src="${user.image}" alt="User Image" style="max-width: 100px; border-radius: 5px;">` : '<span class="null-field">N/A</span>' %>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Account Information -->
+      <div class="col-md-6">
+        <div class="card text-white mb-3">
+          <div class="card-header">Account Information</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Account Number:</b></div>
+                <div class="col-8"><%= user.accNo %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Balance:</b></div>
+                <div class="col-8 balance">₱<%= user.balance ? parseFloat(user.balance).toFixed(2) : '0.00' %></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Verification & Status -->
+      <div class="col-md-6">
+        <div class="card text-white mb-3">
+          <div class="card-header">Verification & Status</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Email Verified:</b></div>
+                <div class="col-8"><%= user.isVerified ? 'Yes' : 'No' %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>KYC Verified:</b></div>
+                <div class="col-8"><%= user.kycVerified ? 'Yes' : 'No' %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Is Suspended:</b></div>
+                <div class="col-8"><%= user.isSuspended ? 'Yes' : 'No' %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Verification Code:</b></div>
+                <div class="col-8"><%= user.verificationCode || '<span class="null-field">N/A</span>' %></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="col-md-6">
+        <div class="card text-white mb-3">
+          <div class="card-header">Security</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>OTP Code:</b></div>
+                <div class="col-8"><%= user.otp || '<span class="null-field">N/A</span>' %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>OTP Expires:</b></div>
+                <div class="col-8"><%= user.otpExpires ? new Date(user.otpExpires).toLocaleString() : '<span class="null-field">N/A</span>' %></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Transactions (SendMoney) -->
+      <div class="col-12">
+        <div class="card text-white mb-3">
+          <div class="card-header">Transactions</div>
+          <ul class="list-group list-group-flush">
+            <% if (user.sendMoneys && user.sendMoneys.length > 0) { %>
+              <% user.sendMoneys.forEach(transaction => { %>
+                <li class="list-group-item">
+                  <div class="row">
+                    <div class="col-4"><b>Transaction ID:</b> <%= transaction._id %></div>
+                    <div class="col-4"><b>Recipient:</b> <%= transaction.recipient_account %></div>
+                    <div class="col-4"><b>Amount:</b> ₱<%= transaction.amount ? parseFloat(transaction.amount).toFixed(2) : '0.00' %></div>
+                  </div>
+                  <div class="row mt-2">
+                    <div class="col-4"><b>From:</b> <%= transaction.from %></div>
+                    <div class="col-4"><b>Note:</b> <%= transaction.note || 'N/A' %></div>
+                    <div class="col-4"><b>Date:</b> <%= new Date(transaction.createdAt).toLocaleString() %></div>
+                  </div>
+                </li>
+              <% }) %>
+            <% } else { %>
+              <li class="list-group-item">
+                <div class="row">
+                  <div class="col-12 null-field">No transactions found.</div>
+                </div>
+              </li>
+            <% } %>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Timestamps -->
+      <div class="col-md-6">
+        <div class="card text-white mb-3">
+          <div class="card-header">Timestamps</div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Created At:</b></div>
+                <div class="col-8"><%= new Date(user.createdAt).toLocaleString() %></div>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4"><b>Updated At:</b></div>
+                <div class="col-8"><%= new Date(user.updatedAt).toLocaleString() %></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; <%= new Date().getFullYear() %> GCash Admin. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS and Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ
