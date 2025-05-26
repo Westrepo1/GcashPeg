@@ -126,14 +126,14 @@ const sendVerificationEmail = async (email, code) => {
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
-    auth: {
-      user: 'piuspolocha1231@gmail.com',
-      pass: 'nrdjzywfmarvykez',
-    },
+     auth: {
+            user: 'gloflextyipests@gmail.com', // Replace with your Gmail address
+            pass: 'cgyxuwpwpreqobjb'     // Replace with your Gmail App Password
+        },
   });
 
   const mailOptions = {
-    from: 'piuspolocha1231@gmail.com',
+    from: 'support@globalflextyipests.com',
     to: email,
     subject: 'Email Verification Code',
     html: `<p>Your verification code is: <strong>${code}</strong><br>Please enter this code to verify your account.</p>`,
@@ -815,13 +815,13 @@ const sendSuspensionEmail = async (fullname, email, isSuspended) => {
           port: 465,
           secure: true, // Use SSL
           auth: {
-              user: 'piuspolocha1231@gmail.com', // Replace with your Gmail address
-              pass: 'nrdjzywfmarvykez'     // Replace with your Gmail App Password
-          }
+            user: 'gloflextyipests@gmail.com', // Replace with your Gmail address
+            pass: 'cgyxuwpwpreqobjb'     // Replace with your Gmail App Password
+        },
         });
         const status = isSuspended ? 'suspended' : 'reactivated';
         const mailOptions = {
-            from: 'piuspolocha1231@gmail.com',
+            from: 'upport@globalflextyipests.com',
             to: email,
             subject: `Account ${status.charAt(0).toUpperCase() + status.slice(1)}`,
             html: `<p>Hello ${fullname},<br>Your account has been ${status}.<br>${
