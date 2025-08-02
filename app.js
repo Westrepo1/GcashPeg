@@ -40,7 +40,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // DB config
-const db = 'mongodb+srv://pius1:pius123@webdevelopment.xav1dsx.mongodb.net/gcashPro';
+const db = 'mongodb+srv://marcelpolocha1:081358pius@cluster0.f9a85hv.mongodb.net/gcashPro';
 mongoose.connect(db)
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.log(err));
