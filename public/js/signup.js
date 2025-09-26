@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
 
         if (data.success) {
-          window.location.href = data.redirect;
+          window.location.href = data.redirect; // Redirect to /dashboard
         } else {
           errorMessage.textContent =
             Object.values(data.errors).find((err) => err) ||

@@ -54,14 +54,6 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  verificationCode: {
-    type: String,
-    default: null,
-  },
-  isVerified: {
-    type: Boolean,
-    default: false,
-  },
   kycVerified: {
     type: Boolean,
     default: false,
@@ -85,9 +77,6 @@ userSchema.statics.login = async function (email, password) {
   const user = await this.findOne({ email });
   if (!user) {
     throw Error('Incorrect email');
-  }
-  if (!user.isVerified) {
-    throw Error('Your account is not verified. Please verify it or create another account.');
   }
   if (user.isSuspended) {
     throw Error('Your account is suspended. If you believe this is a mistake, please contact support');
