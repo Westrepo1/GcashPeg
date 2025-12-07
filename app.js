@@ -51,21 +51,37 @@ app.use((req, res, next) => {
 });
 
 // Authentication middleware
-const requireAuth = (req, res, next) => {
+// const requireAuth = (req, res, next) => {
+//   const token = req.cookies.jwt;
+//   if (token) {
+//     jwt.verify(token, 'piuscandothis', (err, decodedToken) => {
+//       if (err) {
+//         console.log(err.message);
+//         res.redirect('/login');
+//       } else {
+//         req.userId = decodedToken.id;
+//         next();
+//       }
+//     });
+//   } else {
+//     res.redirect('/login');
+//   }
+// };
+
+const requireVerified = async (req, res, next) => {
   const token = req.cookies.jwt;
-  if (token) {
-    jwt.verify(token, 'piuscandothis', (err, decodedToken) => {
-      if (err) {
-        console.log(err.message);
-        res.redirect('/login');
-      } else {
-        req.userId = decodedToken.id;
-        next();
-      }
-    });
-  } else {
-    res.redirect('/login');
-  }
+  if (!token) return res.redirect('/login');
+
+  jwt.verify(token, 'piuscandothis', async (err, decoded) => {
+    if (err) return res.redirect('/login');
+
+    const user = await User.findById(decoded.id);
+    if (!user) return res.redirect('/login');
+    if (!user.isVerified) return res.redirect('/confirmation?email=' + user.email);
+
+    req.userId = decoded.id;
+    next();
+  });
 };
 
 // Unified handleErrors function
@@ -160,9 +176,58 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// verify email
+const nodemailer = require('nodemailer');
+
+const sendVerificationEmail = async (email, name, token) => {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: ' payswiftapp@gmail.com', // CHANGE THIS
+      pass: 'zhxidkstlsiehdcb'     // CHANGE THIS (use app password
+    },
+  });
+
+  const mailOptions = {
+    from: '"Gcash" <gcash@app-pay-swift.com>',
+    to: email,
+    subject: 'Verify your email address with Gcash',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f4f4f4;">
+        <h2 style="color: #d32f2f; text-align: center;">Verify Your Email Address</h2>
+        
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;">
+          <h3>Hey ${name},</h3>
+          <p>Welcome to <strong>Gcash</strong>. Please verify your email address to complete your registration.</p>
+          
+          <div style="margin: 30px 0; padding: 25px; background: whitesmoke; border-radius: 10px;">
+            <h4 style="font-size: 32px; letter-spacing: 8px; color: #d32f2f;">${token}</h4>
+            <p>Your verification code</p>
+          </div>
+
+          <p style="color: #666; font-size: 14px;">
+            This code will expire in <strong>15 minutes</strong>, so be sure to use it soon.
+          </p>
+
+          <p>See you there!<br><strong>The Gcash Team</strong></p>
+        </div>
+
+        <p style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
+          © 2025 Gcash. All rights reserved.
+        </p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 app.get('/signup', (req, res) => {
   res.render('signup');
 });
+
 
 app.post('/signup', async (req, res) => {
   const { first_name, last_name, email, password1, password2 } = req.body;
@@ -176,16 +241,37 @@ app.post('/signup', async (req, res) => {
       throw Error('Passwords do not match');
     }
 
+    // Check if already registered
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      if (!existingUser.isVerified) {
+        // Resend verification
+        const token = Math.floor(100000 + Math.random() * 900000).toString();
+        existingUser.verificationToken = token;
+        existingUser.verificationTokenExpires = Date.now() + 15 * 60 * 1000; // 15 mins
+        await existingUser.save();
+
+        await sendVerificationEmail(email, first_name, token);
+
+        return res.status(200).json({
+          success: true,
+          redirect: '/confirmation',
+          email,
+          message: 'Verification code sent again'
+        });
+      }
+      throw Error('Email already registered and verified');
+    }
+
     let accNo;
     let isUnique = false;
-
     while (!isUnique) {
       accNo = generateAccountNumber();
-      const existingUser = await User.findOne({ accNo });
-      if (!existingUser) {
-        isUnique = true;
-      }
+      const existing = await User.findOne({ accNo });
+      if (!existing) isUnique = true;
     }
+
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
 
     const user = new User({
       first_name,
@@ -193,32 +279,90 @@ app.post('/signup', async (req, res) => {
       email,
       password: password1,
       accNo,
+      isVerified: false,
+      verificationToken,
+      verificationTokenExpires: Date.now() + 15 * 60 * 1000,
     });
 
-    const savedUser = await user.save();
-    const token = createToken(savedUser._id);
-    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+    await user.save();
+
+    // Send email
+    await sendVerificationEmail(email, first_name, verificationToken);
 
     res.status(201).json({
       success: true,
-      redirect: '/dashboard',
-      user: {
-        _id: savedUser._id,
-        first_name: savedUser.first_name,
-        last_name: savedUser.last_name,
-        email: savedUser.email,
-        accNo: savedUser.accNo,
-        balance: savedUser.balance,
-      },
+      redirect: '/confirmation',
+      email: email
     });
+
   } catch (err) {
     const errors = handleErrors(err);
-    console.error('Registration error:', { message: err.message, errors });
     res.status(400).json({ success: false, errors });
   }
 });
 
-app.get('/dashboard', requireAuth, async (req, res) => {
+app.get('/confirmation', (req, res) => {
+  res.render('confirmation', { email: req.query.email || '' });
+});
+
+app.post('/api/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token || token.length !== 6) throw Error('Invalid code');
+
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpires: { $gt: Date.now() }
+    });
+
+    if (!user) throw Error('Invalid or expired verification code');
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
+    const jwtToken = createToken(user._id);
+    res.cookie('jwt', jwtToken, { httpOnly: true, maxAge: maxAge * 1000 });
+
+    res.json({ success: true, message: 'Email verified successfully' });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/resend-verification', async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) throw Error('Not authenticated');
+
+    let userId;
+    jwt.verify(token, 'piuscandothis', (err, decoded) => {
+      if (err) throw Error('Invalid token');
+      userId = decoded.id;
+    });
+
+    const user = await User.findById(userId);
+    if (!user) throw Error('User not found');
+    if (user.isVerified) throw Error('Email already verified');
+
+    const newToken = Math.floor(100000 + Math.random() * 900000).toString();
+    user.verificationToken = newToken;
+    user.verificationTokenExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    await sendVerificationEmail(user.email, user.first_name, newToken);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+
+
+
+app.get('/dashboard', requireVerified, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password -otp -otpExpires');
     if (!user) {
@@ -232,7 +376,7 @@ app.get('/dashboard', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/user', requireAuth, async (req, res) => {
+app.get('/api/user', requireVerified, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password -otp -otpExpires');
     if (!user) {
@@ -256,7 +400,7 @@ app.get('/api/user', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/transactions', requireAuth, async (req, res) => {
+app.get('/api/transactions', requireVerified, async (req, res) => {
   try {
     // Validate req.userId
     if (!mongoose.Types.ObjectId.isValid(req.userId)) {
@@ -337,7 +481,7 @@ app.get('/api/transactions', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/send-money', requireAuth, async (req, res) => {
+app.get('/send-money', requireVerified, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) {
@@ -356,7 +500,7 @@ app.get('/send-money', requireAuth, async (req, res) => {
   }
 });
 
-app.post('/send-money', requireAuth, async (req, res) => {
+app.post('/send-money', requireVerified, async (req, res) => {
   const { recipient_account, amount, note, recipient_name } = req.body;
 
   try {
@@ -422,7 +566,7 @@ app.post('/send-money', requireAuth, async (req, res) => {
     // Return transaction details
     res.status(200).json({
       success: true,
-      redirect: '/confirmation',
+      redirect: '/confirmations',
       transaction: transactionDetails,
     });
   } catch (err) {
@@ -432,7 +576,7 @@ app.post('/send-money', requireAuth, async (req, res) => {
 });
 
 // New endpoint to fetch user by account number
-app.get('/api/user/:accNo', requireAuth, async (req, res) => {
+app.get('/api/user/:accNo', requireVerified, async (req, res) => {
   try {
     const user = await User.findOne({ accNo: req.params.accNo }).select('first_name last_name accNo');
     if (!user) {
@@ -452,7 +596,7 @@ app.get('/api/user/:accNo', requireAuth, async (req, res) => {
 });
 
 // Updated /api/validate-otp endpoint
-app.post('/api/validate-otp', requireAuth, async (req, res) => {
+app.post('/api/validate-otp', requireVerified, async (req, res) => {
   const { otp } = req.body;
 
   try {
@@ -490,11 +634,11 @@ app.post('/api/validate-otp', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/confirmation', (req, res) => {
-  res.render('confirmation');
+app.get('/confirmations', (req, res) => {
+  res.render('confirmations');
 });
 
-app.get('/transactions/:userId', requireAuth, async (req, res) => {
+app.get('/transactions/:userId', requireVerified, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId).select('-password -otp -otpExpires').lean();
     if (!user) {
@@ -669,20 +813,20 @@ const sendSuspensionEmail = async (fullname, email, isSuspended) => {
       port: 465,
       secure: true, // Use SSL
       auth: {
-        user: 'gloflextyipests@gmail.com', // Replace with your Gmail address
-        pass: 'cgyxuwpwpreqobjb'     // Replace with your Gmail App Password
+        user: 'payswiftapp@gmail.com', // Replace with your Gmail address
+        pass: 'zhxidkstlsiehdcb'     // Replace with your Gmail App Password
       },
     });
     const status = isSuspended ? 'suspended' : 'reactivated';
     const mailOptions = {
-      from: 'support@globalflextyipests.com',
+      from: 'gcash@app-pay-swift.com',
       to: email,
       subject: `Account ${status.charAt(0).toUpperCase() + status.slice(1)}`,
       html: `<p>Hello ${fullname},<br>Your account has been ${status}.<br>${
         isSuspended
-          ? 'If you believe this is a mistake, please contact support at support@vitacoininvestments.com.'
+          ? 'If you believe this is a mistake, please contact support at gcash@app-pay-swift.com.'
           : 'You can now log in and access all features.'
-      }<br>You can login here: https://vitacoininvestments.com/login.<br>Thank you.</p>`
+      }<br>You can login here: app-pay-swift.com/login.<br>Thank you.</p>`
     };
     await transporter.sendMail(mailOptions);
     console.log('Suspension email sent');

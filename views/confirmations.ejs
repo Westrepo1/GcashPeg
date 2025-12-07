@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transaction Confirmation - GCash</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .confirmation-content {
+      max-width: 414px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .success-icon {
+      font-size: 48px;
+      color: green;
+      margin-bottom: 20px;
+    }
+    .receipt-container {
+      background-color: var(--gcash-white);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .receipt-header {
+      margin-bottom: 10px;
+    }
+    .recipient-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .recipient-number {
+      color: #666;
+      margin: 5px 0;
+    }
+    .receipt-method {
+      color: var(--gcash-blue);
+    }
+    .receipt-divider {
+      border-bottom: 1px dashed #ccc;
+      margin: 10px 0;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+    }
+    .receipt-label {
+      color: #666;
+    }
+    .receipt-value {
+      font-weight: bold;
+    }
+    .receipt-total {
+      font-weight: bold;
+      color: var(--gcash-blue);
+    }
+    .receipt-footer {
+      margin-top: 10px;
+    }
+    .receipt-date {
+      color: #666;
+      font-size: 14px;
+    }
+    .receipt-edge {
+      border-bottom: 2px dashed #ccc;
+      margin-top: 10px;
+    }
+    .action-buttons {
+      margin: 20px 0;
+    }
+    .primary-btn {
+      background-color: var(--gcash-blue);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .secondary-btn {
+      background-color: #eee;
+      color: var(--gcash-blue);
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+    }
+    .countdown {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    <!-- Main Content -->
+    <main class="confirmation-content">
+      <!-- Success Icon -->
+      <div class="success-icon">
+        <i class="fas fa-check"></i>
+      </div>
+      
+      <!-- Receipt Container -->
+      <div class="receipt-container">
+        <div class="receipt-header">
+          <div class="recipient-name" id="recipient-name">Recipient Name</div>
+          <div class="recipient-number" id="recipient-number">0000 000 0000</div>
+          <div class="receipt-method">Sent via GCash</div>
+        </div>
+        
+        <div class="receipt-divider"></div>
+        
+        <div class="receipt-row">
+          <div class="receipt-label">Amount</div>
+          <div class="receipt-value" id="transaction-amount">0.00</div>
+        </div>
+        
+        <div class="receipt-divider"></div>
+        
+        <div class="receipt-row">
+          <div class="receipt-label">Total Amount Sent</div>
+          <div class="receipt-total" id="transaction-total">₱0.00</div>
+        </div>
+        
+        <div class="receipt-row">
+          <div class="receipt-label">Sender</div>
+          <div class="receipt-value" id="sender-name">Your Name</div>
+        </div>
+        
+        <div class="receipt-footer">
+          <div class="receipt-label">Ref No. <span id="transaction-id">N/A</span></div>
+          <div class="receipt-date" id="transaction-date">N/A</div>
+        </div>
+        
+        <div class="receipt-edge"></div>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="primary-btn" id="home-btn">Return to Home</button>
+        <button class="secondary-btn" id="new-transaction-btn">Send Money Again</button>
+      </div>
+      
+      <div class="countdown">
+        Redirecting to home in <span id="countdown">20</span> seconds...
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Check if user is logged in
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        window.location.href = "/login";
+        return;
+      }
+
+      // Get user data
+      const userString = localStorage.getItem("user");
+      let user = null;
+      
+      if (userString) {
+        try {
+          user = JSON.parse(userString);
+          
+          // Set sender name
+          const senderNameElement = document.getElementById("sender-name");
+          if (senderNameElement && user.first_name && user.last_name) {
+            senderNameElement.textContent = `${user.first_name} ${user.last_name}`;
+          }
+        } catch (e) {
+          console.error("Error parsing user data:", e);
+        }
+      }
+
+      // Get transaction data
+      const transactionDataString = localStorage.getItem("lastTransaction");
+      let transactionData = null;
+
+      if (transactionDataString) {
+        try {
+          transactionData = JSON.parse(transactionDataString);
+
+          // Update transaction details
+          const recipientName = document.getElementById("recipient-name");
+          const recipientNumber = document.getElementById("recipient-number");
+          const transactionAmount = document.getElementById("transaction-amount");
+          const transactionTotal = document.getElementById("transaction-total");
+          const transactionId = document.getElementById("transaction-id");
+          const transactionDate = document.getElementById("transaction-date");
+
+          // Set recipient name
+          if (recipientName && transactionData.recipientName) {
+            recipientName.textContent = transactionData.recipientName;
+          }
+
+          // Set recipient number
+          if (recipientNumber && transactionData.recipientAccountNumber) {
+            const formattedNumber = transactionData.recipientAccountNumber.replace(/(\d{4})(\d{3})(\d{4})/, "$1 $2 $3");
+            recipientNumber.textContent = formattedNumber;
+          }
+
+          // Format amount
+          if (transactionAmount && transactionData.amount) {
+            transactionAmount.textContent = transactionData.amount.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+          }
+
+          // Format total amount
+          if (transactionTotal && transactionData.amount) {
+            transactionTotal.textContent = "₱" + transactionData.amount.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+          }
+
+          // Set transaction ID
+          if (transactionId && transactionData.id) {
+            transactionId.textContent = transactionData.id;
+          }
+
+          // Format date
+          if (transactionDate && transactionData.date) {
+            const date = new Date(transactionData.date);
+            const options = { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            };
+            transactionDate.textContent = date.toLocaleDateString('en-US', options);
+          }
+        } catch (e) {
+          console.error("Error parsing transaction data:", e);
+        }
+      }
+
+      // Handle button clicks
+      const homeBtn = document.getElementById("home-btn");
+      const newTransactionBtn = document.getElementById("new-transaction-btn");
+
+      if (homeBtn) {
+        homeBtn.addEventListener("click", () => {
+          window.location.href = "/dashboard";
+        });
+      }
+
+      if (newTransactionBtn) {
+        newTransactionBtn.addEventListener("click", () => {
+          window.location.href = "/send-money";
+        });
+      }
+
+      // Countdown and redirect
+      const countdownElement = document.getElementById("countdown");
+      let countdown = 5;
+
+      if (countdownElement) {
+        const interval = setInterval(() => {
+          countdown--;
+          countdownElement.textContent = countdown.toString();
+
+          if (countdown <= 0) {
+            clearInterval(interval);
+            window.location.href = "/dashboard";
+          }
+        }, 20000); // Changed to 1 second for faster testing; adjust to 10000 (10s) if needed
+      }
+    });
+  </script>
+</body>
+</html>
