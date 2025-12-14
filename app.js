@@ -177,57 +177,11 @@ app.post('/login', async (req, res) => {
 });
 
 // verify email
-const nodemailer = require('nodemailer');
-
-const sendVerificationEmail = async (email, name, token) => {
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: ' payswiftapp@gmail.com', // CHANGE THIS
-      pass: 'zhxidkstlsiehdcb'     // CHANGE THIS (use app password
-    },
-  });
-
-  const mailOptions = {
-    from: '"Gcash" <gcash@app-pay-swift.com>',
-    to: email,
-    subject: 'Verify your email address with Gcash',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f4f4f4;">
-        <h2 style="color: #d32f2f; text-align: center;">Verify Your Email Address</h2>
-        
-        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;">
-          <h3>Hey ${name},</h3>
-          <p>Welcome to <strong>Gcash</strong>. Please verify your email address to complete your registration.</p>
-          
-          <div style="margin: 30px 0; padding: 25px; background: whitesmoke; border-radius: 10px;">
-            <h4 style="font-size: 32px; letter-spacing: 8px; color: #d32f2f;">${token}</h4>
-            <p>Your verification code</p>
-          </div>
-
-          <p style="color: #666; font-size: 14px;">
-            This code will expire in <strong>15 minutes</strong>, so be sure to use it soon.
-          </p>
-
-          <p>See you there!<br><strong>The Gcash Team</strong></p>
-        </div>
-
-        <p style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
-          © 2025 Gcash. All rights reserved.
-        </p>
-      </div>
-    `,
-  };
-
-  await transporter.sendMail(mailOptions);
-};
+const { sendVerificationEmail } = require('./server/utils/sendVerificationEmail')
 
 app.get('/signup', (req, res) => {
   res.render('signup');
 });
-
 
 app.post('/signup', async (req, res) => {
   const { first_name, last_name, email, password1, password2 } = req.body;
