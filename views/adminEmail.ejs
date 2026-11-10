@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Email - GCash Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .navbar { background-color: #286090; }
+    .navbar-brand, .nav-link { color: #ffffff !important; }
+    .navbar-brand:hover, .nav-link:hover { color: #e9ecef !important; }
+    .form-container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .template-option {
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .template-option:hover { border-color: #286090; }
+    .template-option.active {
+      border-color: #286090;
+      background-color: #e8f0f8;
+    }
+    .template-option input { display: none; }
+    #successAlert, #errorAlert { display: none; }
+    #userSelect { min-height: 160px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/siteAdminPages">GCash Admin</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/siteAdminPages">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/admin/email">Email</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="form-container">
+    <h2 class="mb-4"><i class="bi bi-envelope-fill me-2"></i>Send Email to Users</h2>
+
+    <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+      <span id="successText"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div id="errorAlert" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <span id="errorText"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <form id="emailForm">
+      <div class="mb-3">
+        <label for="userSelect" class="form-label fw-semibold">Select User(s)</label>
+        <select class="form-select" id="userSelect" name="userIds" multiple size="8">
+          <% if (users && users.length) { %>
+            <% users.forEach(function(u) { %>
+              <option value="<%= u._id %>"><%= u.fullname %> &lt;<%= u.email %>&gt;</option>
+            <% }); %>
+          <% } else { %>
+            <option disabled>No users found in database</option>
+          <% } %>
+        </select>
+        <div class="form-text">Hold Ctrl (Windows) or Cmd (Mac) to select multiple users.</div>
+      </div>
+
+      <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="allUsers" name="allUsers">
+        <label class="form-check-label fw-semibold" for="allUsers">All Users</label>
+        <div class="form-text">When checked, every user in the database will receive the email.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="subject" class="form-label fw-semibold">Subject</label>
+        <input type="text" class="form-control" id="subject" name="subject" placeholder="Enter email subject" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="message" class="form-label fw-semibold">Message</label>
+        <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here..." required></textarea>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-semibold d-block">Email Template</label>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="template-option active w-100" id="tpl-announcement">
+              <input type="radio" name="template" value="announcement" checked>
+              <div class="fw-semibold"><i class="bi bi-megaphone me-1"></i> Announcement</div>
+              <small class="text-muted">General news & updates</small>
+            </label>
+          </div>
+          <div class="col-md-4">
+            <label class="template-option w-100" id="tpl-account">
+              <input type="radio" name="template" value="account">
+              <div class="fw-semibold"><i class="bi bi-person-badge me-1"></i> Account Notice</div>
+              <small class="text-muted">Account-related notices</small>
+            </label>
+          </div>
+          <div class="col-md-4">
+            <label class="template-option w-100" id="tpl-promotional">
+              <input type="radio" name="template" value="promotional">
+              <div class="fw-semibold"><i class="bi bi-gift me-1"></i> Promotional</div>
+              <small class="text-muted">Offers & promotions</small>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg px-4" id="sendBtn">
+        <i class="bi bi-send-fill me-2"></i>Send Email
+      </button>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+  <script>
+    // Template card selection UI
+    document.querySelectorAll('.template-option').forEach(function (el) {
+      el.addEventListener('click', function () {
+        document.querySelectorAll('.template-option').forEach(function (o) { o.classList.remove('active'); });
+        el.classList.add('active');
+        el.querySelector('input').checked = true;
+      });
+    });
+
+    // All Users checkbox disables multi-select
+    const allUsersCb = document.getElementById('allUsers');
+    const userSelect = document.getElementById('userSelect');
+    allUsersCb.addEventListener('change', function () {
+      userSelect.disabled = allUsersCb.checked;
+      if (allUsersCb.checked) {
+        Array.from(userSelect.options).forEach(function (o) { o.selected = false; });
+      }
+    });
+
+    document.getElementById('emailForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const successAlert = document.getElementById('successAlert');
+      const errorAlert = document.getElementById('errorAlert');
+      const successText = document.getElementById('successText');
+      const errorText = document.getElementById('errorText');
+      const sendBtn = document.getElementById('sendBtn');
+
+      successAlert.style.display = 'none';
+      errorAlert.style.display = 'none';
+
+      const subject = document.getElementById('subject').value.trim();
+      const message = document.getElementById('message').value.trim();
+      const template = (document.querySelector('input[name="template"]:checked') || {}).value || 'announcement';
+      const allUsers = allUsersCb.checked;
+
+      let userIds = [];
+      if (!allUsers) {
+        userIds = Array.from(userSelect.selectedOptions).map(function (o) { return o.value; });
+        if (userIds.length === 0) {
+          errorText.textContent = 'Please select at least one user or check All Users.';
+          errorAlert.style.display = 'block';
+          return;
+        }
+      }
+
+      if (!subject || !message) {
+        errorText.textContent = 'Subject and message are required.';
+        errorAlert.style.display = 'block';
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+
+      try {
+        const res = await fetch('/admin/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: userIds, allUsers: allUsers, subject: subject, message: message, template: template }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          successText.textContent = data.message || 'Email sent successfully!';
+          successAlert.style.display = 'block';
+          // Clear form fields
+          document.getElementById('subject').value = '';
+          document.getElementById('message').value = '';
+          allUsersCb.checked = false;
+          userSelect.disabled = false;
+          Array.from(userSelect.options).forEach(function (o) { o.selected = false; });
+          document.querySelectorAll('.template-option').forEach(function (o) { o.classList.remove('active'); });
+          document.getElementById('tpl-announcement').classList.add('active');
+          document.querySelector('input[value="announcement"]').checked = true;
+        } else {
+          errorText.textContent = data.message || 'Failed to send email.';
+          errorAlert.style.display = 'block';
+        }
+      } catch (err) {
+        console.error(err);
+        errorText.textContent = 'An error occurred. Please try again.';
+        errorAlert.style.display = 'block';
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Send Email';
+      }
+    });
+  </script>
+</body>
+</html>

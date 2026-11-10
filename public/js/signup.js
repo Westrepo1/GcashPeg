@@ -63,10 +63,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
 
         if (data.success) {
-          window.location.href = data.redirect; // Redirect to /dashboard
+          // Store email for verify page and redirect to email verification
+          if (data.user && data.user.email) {
+            localStorage.setItem("pendingVerifyEmail", data.user.email);
+          } else if (emailInput.value) {
+            localStorage.setItem("pendingVerifyEmail", emailInput.value.trim().toLowerCase());
+          }
+          window.location.href = data.redirect || "/verify-email";
         } else {
           errorMessage.textContent =
-            Object.values(data.errors).find((err) => err) ||
+            data.message ||
+            (data.errors && Object.values(data.errors).find((err) => err)) ||
             "Failed to create account. Please try again.";
           errorMessage.style.display = "block";
         }

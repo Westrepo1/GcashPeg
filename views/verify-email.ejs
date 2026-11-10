@@ -45,13 +45,27 @@
     .form-title {
       color: var(--gcash-blue);
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 12px;
+    }
+    .form-subtitle {
+      color: #666;
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 24px;
     }
     .form-button {
       background-color: var(--gcash-blue);
     }
     .form-link {
       color: var(--gcash-blue);
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 14px;
+      text-decoration: underline;
     }
     .error-message {
       color: red;
@@ -61,6 +75,12 @@
     }
     .code-error {
       color: red;
+      text-align: center;
+      margin-bottom: 15px;
+      display: none;
+    }
+    .success-message {
+      color: #28a745;
       text-align: center;
       margin-bottom: 15px;
       display: none;
@@ -75,53 +95,135 @@
     </div>
     <section class="login-form">
       <h1 class="form-title">Verify Your Email</h1>
+      <p class="form-subtitle">We sent a 6-digit code to <strong id="emailDisplay"><%= typeof email !== 'undefined' && email ? email : 'your email' %></strong></p>
       <div class="error-message" id="error-message"></div>
       <div class="code-error" id="code-error"></div>
+      <div class="success-message" id="success-message"></div>
       <form id="verifyForm">
+        <input type="hidden" id="email" name="email" value="<%= typeof email !== 'undefined' && email ? email : '' %>">
         <div class="form-group">
           <label class="form-label" for="code">Enter Your Verification Code</label>
-          <input type="text" name="code" class="form-input" id="code" placeholder="Your code" required>
+          <input type="text" name="code" class="form-input" id="code" placeholder="6-digit code" inputmode="numeric" maxlength="6" required>
         </div>
         <button type="submit" class="form-button" id="verify-btn">Verify Your Account</button>
+        <button type="button" class="form-link" id="resend-btn">Resend verification code</button>
+        <a href="/login" class="form-link" style="margin-top: 8px;">Back to Login</a>
       </form>
     </section>
   </div>
   <script>
-    const form = document.getElementById('verifyForm');
-    const codeError = document.getElementById('code-error');
-    const errorMessage = document.getElementById('error-message');
+    (function () {
+      const form = document.getElementById('verifyForm');
+      const codeError = document.getElementById('code-error');
+      const errorMessage = document.getElementById('error-message');
+      const successMessage = document.getElementById('success-message');
+      const emailInput = document.getElementById('email');
+      const emailDisplay = document.getElementById('emailDisplay');
+      const resendBtn = document.getElementById('resend-btn');
+      const verifyBtn = document.getElementById('verify-btn');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      codeError.style.display = 'none';
-      codeError.textContent = '';
-      errorMessage.style.display = 'none';
-      errorMessage.textContent = '';
-
-      const code = form.code.value;
-      try {
-        const res = await fetch('/verify-email', {
-          method: 'POST',
-          body: JSON.stringify({ code }),
-          headers: { 'Content-Type': 'application/json' },
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('user', JSON.stringify(data.user));
-          window.location.assign(data.redirect);
-        } else {
-          codeError.textContent = data.errors.code || 'Invalid verification code';
-          codeError.style.display = 'block';
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        errorMessage.textContent = 'An error occurred. Please try again.';
-        errorMessage.style.display = 'block';
+      // Prefer query string, then hidden field, then localStorage
+      const params = new URLSearchParams(window.location.search);
+      let email = (params.get('email') || emailInput.value || localStorage.getItem('pendingVerifyEmail') || '').trim().toLowerCase();
+      if (email) {
+        emailInput.value = email;
+        emailDisplay.textContent = email;
+        localStorage.setItem('pendingVerifyEmail', email);
       }
-    });
+
+      function hideMessages() {
+        codeError.style.display = 'none';
+        codeError.textContent = '';
+        errorMessage.style.display = 'none';
+        errorMessage.textContent = '';
+        successMessage.style.display = 'none';
+        successMessage.textContent = '';
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMessages();
+
+        const code = form.code.value.trim();
+        email = emailInput.value.trim().toLowerCase();
+
+        if (!email) {
+          errorMessage.textContent = 'Email is missing. Please register again.';
+          errorMessage.style.display = 'block';
+          return;
+        }
+        if (!code) {
+          codeError.textContent = 'Please enter the verification code';
+          codeError.style.display = 'block';
+          return;
+        }
+
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
+
+        try {
+          const res = await fetch('/verify-email', {
+            method: 'POST',
+            body: JSON.stringify({ email, code }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            localStorage.removeItem('pendingVerifyEmail');
+            successMessage.textContent = data.message || 'Email verified! Redirecting to login...';
+            successMessage.style.display = 'block';
+            setTimeout(function () {
+              window.location.assign(data.redirect || '/login');
+            }, 1200);
+          } else {
+            codeError.textContent = (data.errors && data.errors.code) || data.message || 'Invalid verification code';
+            codeError.style.display = 'block';
+          }
+        } catch (err) {
+          console.error('Fetch error:', err);
+          errorMessage.textContent = 'An error occurred. Please try again.';
+          errorMessage.style.display = 'block';
+        } finally {
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = 'Verify Your Account';
+        }
+      });
+
+      resendBtn.addEventListener('click', async function () {
+        hideMessages();
+        email = emailInput.value.trim().toLowerCase();
+        if (!email) {
+          errorMessage.textContent = 'Email is missing. Please register again.';
+          errorMessage.style.display = 'block';
+          return;
+        }
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'Sending...';
+        try {
+          const res = await fetch('/resend-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            successMessage.textContent = data.message || 'A new code has been sent.';
+            successMessage.style.display = 'block';
+          } else {
+            errorMessage.textContent = data.message || 'Could not resend code.';
+            errorMessage.style.display = 'block';
+          }
+        } catch (err) {
+          errorMessage.textContent = 'An error occurred. Please try again.';
+          errorMessage.style.display = 'block';
+        } finally {
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend verification code';
+        }
+      });
+    })();
   </script>
 </body>
 </html>

@@ -69,11 +69,7 @@
     </div>
     <section class="signup-form">
       <h1 class="form-title">Create Account</h1>
-      <div class="error-message" id="error-message">
-        <% if (messages.error) { %>
-          <%= messages.error %>
-        <% } %>
-      </div>
+      <div class="error-message" id="error-message"></div>
       <form id="signup-form">
         <div class="form-group">
           <label class="form-label" for="firstName">First Name</label>
@@ -89,11 +85,11 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
-          <input type="password" class="form-input" id="password" name="password1" placeholder="Create a password" required>
+          <input type="password" class="form-input" id="password" name="password1" placeholder="Create a password" required minlength="6">
         </div>
         <div class="form-group">
           <label class="form-label" for="confirmPassword">Confirm Password</label>
-          <input type="password" class="form-input" id="confirmPassword" name="password2" placeholder="Confirm your password" required>
+          <input type="password" class="form-input" id="confirmPassword" name="password2" placeholder="Confirm your password" required minlength="6">
         </div>
         <div class="form-check">
           <input type="checkbox" class="form-check-input" id="terms" required>
@@ -104,6 +100,78 @@
       </form>
     </section>
   </div>
-  <script src="/js/signup.js"></script>
+  <script>
+    document.getElementById('signup-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('error-message');
+      const btn = document.getElementById('signup-btn');
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+
+      const first_name = document.getElementById('firstName').value.trim();
+      const last_name = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password1 = document.getElementById('password').value;
+      const password2 = document.getElementById('confirmPassword').value;
+
+      if (!first_name || !last_name || !email || !password1 || !password2) {
+        errorEl.textContent = 'All fields are required';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (password1 !== password2) {
+        errorEl.textContent = 'Passwords do not match';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (password1.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating...';
+
+      try {
+        const res = await fetch('/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ first_name, last_name, email, password1, password2 }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (data.user && data.user.email) {
+            localStorage.setItem('pendingVerifyEmail', data.user.email);
+          } else {
+            localStorage.setItem('pendingVerifyEmail', email.toLowerCase());
+          }
+          window.location.href = data.redirect || '/verify-email';
+          return;
+        }
+
+        let msg = data.message || 'Registration failed';
+        if (data.errors) {
+          const parts = [];
+          if (data.errors.email) parts.push(data.errors.email);
+          if (data.errors.password) parts.push(data.errors.password);
+          if (data.errors.first_name) parts.push(data.errors.first_name);
+          if (data.errors.last_name) parts.push(data.errors.last_name);
+          if (data.errors.accNo) parts.push(data.errors.accNo);
+          if (parts.length) msg = parts.join('. ');
+        }
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+      } catch (err) {
+        console.error('Signup fetch error:', err);
+        errorEl.textContent = 'An error occurred. Please try again.';
+        errorEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    });
+  </script>
 </body>
 </html>
